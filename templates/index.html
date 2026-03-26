@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThreatGuard — Ransomware Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="noise"></div>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="logo-icon">⬡</span>
+    <span class="logo-text">THREAT<span class="accent">GUARD</span></span>
+    <span class="version">v4.1.2</span>
+  </div>
+
+  <div class="topbar-center">
+    <span class="live-badge">
+      <span class="pulse-dot"></span>
+      LIVE MONITORING
+    </span>
+  </div>
+
+  <div class="topbar-right">
+    <span id="current-time" class="mono"></span>
+    <span class="separator">|</span>
+    <span class="status-chip danger-chip" id="top-threats">0 THREATS</span>
+  </div>
+</header>
+
+<main class="dashboard">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="metric-card">
+      <div class="metric-label">Active Threats</div>
+      <div class="metric-value danger" id="m-threats">0</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">Total Devices</div>
+      <div class="metric-value clean" id="m-devices">0</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">Blocked Today</div>
+      <div class="metric-value gold" id="m-blocked">0</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">System Health</div>
+      <div class="metric-value clean">98%</div>
+    </div>
+
+    <div class="threat-map-card">
+      <div class="threat-map-title">THREAT ORIGIN MAP</div>
+      <canvas id="threatMap" width="220" height="120"></canvas>
+    </div>
+
+  </aside>
+
+  <!-- Alerts -->
+  <section class="alerts-section">
+    <div class="section-header">
+      <h2>ACTIVE ALERTS</h2>
+      <span class="section-count danger" id="alert-count">0</span>
+      <button class="clear-btn" onclick="clearAlerts()">CLEAR</button>
+    </div>
+
+    <div id="alerts-list" class="alerts-list"></div>
+  </section>
+  <!-- Devices -->
+  <section class="devices-section">
+    <div class="section-header">
+      <h2>DEVICES</h2>
+      <span class="section-count clean" id="device-count">0</span>
+    </div>
+
+    <input type="text" placeholder="Search device..." id="deviceSearch" oninput="filterDevices()" />
+
+    <div id="device-list" class="device-list"></div>
+  </section>
+
+</main>
+
+<footer class="statusbar">
+  <span>LAST SCAN: <span id="last-scan">--</span></span>
+</footer>
+
+<script src="dashboard.js"></script>
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</body>
+</html>
