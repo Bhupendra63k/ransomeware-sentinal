@@ -256,13 +256,22 @@ function killProcess(pid) {
     body: JSON.stringify({ pid })
   });
 }
-const socket = io();
+const socket = io("http://localhost:5000");
 
-socket.on("new_alert", (alert) => {
-  alerts.unshift(alert);
-  metrics.active_threats = alerts.length;
-  renderAlerts();
-  renderMetrics();
+socket.on("new_alert", function(data) {
+    console.log("🔥 New alert received:", data);
+
+    const alertsList = document.getElementById("alerts-list");
+
+    const div = document.createElement("div");
+    div.className = "alert-card";
+
+    div.innerHTML = `
+        <strong>${data.device}</strong> - ${data.alert}<br>
+        <small>${data.file}</small>
+    `;
+
+    alertsList.prepend(div);
 });
 // ── Init ──────────────────────────────────────────────────────
 function init() {

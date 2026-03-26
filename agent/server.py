@@ -7,7 +7,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 devices = {}
 alerts = []
 
-# Dashboard
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -36,6 +36,7 @@ def report():
 
         # 🔥 REAL-TIME PUSH
         socketio.emit("new_alert", alert)
+        print("🚨 Emitting alert:", alert)
 
     return {"status": "ok"}
 
