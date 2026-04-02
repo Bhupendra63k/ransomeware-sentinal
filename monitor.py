@@ -184,17 +184,19 @@ def check_ransomware(file_path):
 
     if len(MODIFIED_FILES) > THRESHOLD and len(RENAMED_FILES) > RENAME_THRESHOLD:
         print("🚨 RANSOMWARE DETECTED!")
-
+        send_alert(file_path, "Ransomware detected")
+        time.sleep(0.3)
         for proc in get_suspicious_processes():
             kill_process(proc)
-
-        send_alert(file_path, "Ransomware behavior detected")
 
 
 # -------------------------------
 # 📂 HANDLER
 # -------------------------------
 class RansomwareHandler(FileSystemEventHandler):
+    def __init__(self, send_alert_func):
+        self.send_alert = send_alert_func
+        
 
     def on_modified(self, event):
         if not event.is_directory:

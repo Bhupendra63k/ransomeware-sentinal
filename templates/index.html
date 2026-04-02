@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RansomSentinel — SOC Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<!-- ═══════════════ SCAN LINE OVERLAY ═══════════════ -->
+<div class="scanlines" aria-hidden="true"></div>
+<div id="threat-flash" aria-hidden="true"></div>
+<div id="boot-overlay">
+  <div class="boot-content">
+    <div class="boot-logo">
+      <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="30,3 57,18 57,42 30,57 3,42 3,18" stroke="#00ffe7" stroke-width="1.5" fill="rgba(0,255,231,0.04)"/>
+        <polygon points="30,10 50,21 50,39 30,50 10,39 10,21" stroke="#00ffe7" stroke-width="1" fill="none" stroke-dasharray="3 3" opacity="0.5"/>
+        <circle cx="30" cy="30" r="6" fill="#00ffe7" opacity="0.9"/>
+        <circle cx="30" cy="30" r="12" stroke="#00ffe7" stroke-width="0.5" fill="none" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="boot-text">RANSOMSENTINEL</div>
+    <div class="boot-sub">INITIALIZING THREAT DETECTION SYSTEMS...</div>
+    <div class="boot-bar-wrap"><div class="boot-bar-fill" id="bootBarFill"></div></div>
+    <div class="boot-status" id="bootStatus">LOADING MODULES...</div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="18,2 34,11 34,25 18,34 2,25 2,11" stroke="#00ffe7" stroke-width="1.5" fill="rgba(0,255,231,0.06)"/>
+        <polygon points="18,8 28,13.5 28,22.5 18,28 8,22.5 8,13.5" stroke="#00ffe7" stroke-width="0.8" fill="rgba(0,255,231,0.08)" stroke-dasharray="2 2"/>
+        <circle cx="18" cy="18" r="4" fill="#00ffe7"/>
+      </svg>
+    </div>
+    <div class="logo-words">
+      <span class="logo-main">RANSOM<span class="logo-accent">SENTINEL</span></span>
+      <span class="logo-tagline">THREAT COMMAND CENTER</span>
+    </div>
+    <span class="logo-ver">v4.2.0</span>
+  </div>
+
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <span class="nav-icon">⬡</span> DASHBOARD
+    </button>
+    <button class="nav-btn" data-tab="alerts" onclick="switchTab('alerts')">
+      <span class="nav-icon">⚠</span> ALERTS
+      <span class="nav-badge" id="nav-alert-badge">0</span>
+    </button>
+    <button class="nav-btn" data-tab="devices" onclick="switchTab('devices')">
+      <span class="nav-icon">◈</span> DEVICES
+    </button>
+    <button class="nav-btn" data-tab="history" onclick="switchTab('history')">
+      <span class="nav-icon">◷</span> HISTORY
+    </button>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      <span>LIVE</span>
+    </div>
+    <div class="clock-wrap">
+      <span id="clock" class="clock">00:00:00</span>
+      <span id="date-display" class="clock-date">--/--/----</span>
+    </div>
+    <div class="threat-badge" id="top-threat-badge">0 THREATS</div>
+  </div>
+</header>
+
+<!-- ═══════════════ MAIN LAYOUT ═══════════════ -->
+<div class="app-body">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="section-label">SYSTEM OVERVIEW</div>
+
+    <div class="metric-grid">
+      <div class="metric-card danger-card" id="mc-threats">
+        <div class="metric-icon">⚠</div>
+        <div class="metric-body">
+          <div class="metric-val" id="m-threats">0</div>
+          <div class="metric-label">Active Threats</div>
+        </div>
+        <div class="metric-trend" id="trend-threats"></div>
+      </div>
+      <div class="metric-card good-card" id="mc-devices">
+        <div class="metric-icon">◈</div>
+        <div class="metric-body">
+          <div class="metric-val" id="m-devices">0</div>
+          <div class="metric-label">Online Devices</div>
+        </div>
+      </div>
+      <div class="metric-card warn-card" id="mc-blocked">
+        <div class="metric-icon">⊘</div>
+        <div class="metric-body">
+          <div class="metric-val" id="m-blocked">0</div>
+          <div class="metric-label">Blocked Today</div>
+        </div>
+      </div>
+      <div class="metric-card info-card" id="mc-resolved">
+        <div class="metric-icon">✔</div>
+        <div class="metric-body">
+          <div class="metric-val" id="m-resolved">0</div>
+          <div class="metric-label">Resolved</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:12px">SYSTEM INTEGRITY</div>
+    <div class="integrity-card">
+      <div class="integrity-row">
+        <span class="integrity-label">SYSTEM HEALTH</span>
+        <span class="integrity-pct" id="health-pct">98%</span>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill good" id="health-fill" style="width:98%"></div></div>
+
+      <div class="integrity-row" style="margin-top:10px">
+        <span class="integrity-label">THREAT SCORE</span>
+        <span class="integrity-pct danger" id="threat-score-pct">0%</span>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill danger" id="threat-score-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="section-label" style="margin-top:12px">SEVERITY BREAKDOWN</div>
+    <div class="severity-card">
+      <div class="sev-row">
+        <span class="sev-dot high"></span>
+        <span class="sev-label">HIGH</span>
+        <span class="sev-count" id="sev-high">0</span>
+        <div class="sev-bar-wrap"><div class="sev-bar high" id="sev-bar-high" style="width:0%"></div></div>
+      </div>
+      <div class="sev-row">
+        <span class="sev-dot medium"></span>
+        <span class="sev-label">MEDIUM</span>
+        <span class="sev-count" id="sev-medium">0</span>
+        <div class="sev-bar-wrap"><div class="sev-bar medium" id="sev-bar-medium" style="width:0%"></div></div>
+      </div>
+      <div class="sev-row">
+        <span class="sev-dot low"></span>
+        <span class="sev-label">LOW</span>
+        <span class="sev-count" id="sev-low">0</span>
+        <div class="sev-bar-wrap"><div class="sev-bar low" id="sev-bar-low" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:12px">THREAT ORIGIN MAP</div>
+    <div class="map-card">
+      <canvas id="threatMap" width="228" height="130"></canvas>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- DASHBOARD TAB -->
+    <div class="tab-pane active" id="tab-dashboard">
+      <div class="pane-header">
+        <span class="pane-title">⬡ DASHBOARD OVERVIEW</span>
+        <div class="spacer"></div>
+        <span class="pane-sub" id="last-scan-label">LAST SCAN: --:--:--</span>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dash-section">
+          <div class="dash-section-title">
+            <span class="ds-icon danger-color">⚠</span> ACTIVE THREATS
+            <span class="count-chip" id="active-chip">0</span>
+            <div class="spacer"></div>
+            <button class="sm-btn danger-btn" id="clear-alerts-btn">✕ CLEAR ALL</button>
+          </div>
+          <div id="alerts-list-dash" class="alerts-scroll">
+            <div class="empty-state">
+              <div class="empty-icon">🛡</div>
+              <div class="empty-label">ALL CLEAR — NO ACTIVE THREATS</div>
+              <div class="empty-sub">System is monitoring all endpoints</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">
+            <span class="ds-icon good-color">◈</span> DEVICE STATUS
+            <span class="count-chip calm" id="devices-chip-dash">0</span>
+          </div>
+          <div id="devices-list-dash" class="devices-scroll">
+            <div class="empty-state">
+              <div class="empty-icon">🖥</div>
+              <div class="empty-label">NO DEVICES REGISTERED</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS TAB -->
+    <div class="tab-pane" id="tab-alerts">
+      <div class="pane-header">
+        <span class="pane-title">⚠ ALERT MANAGEMENT</span>
+        <div class="spacer"></div>
+        <div class="filter-group">
+          <select class="filter-select" id="filter-severity" onchange="applyFilters()">
+            <option value="">ALL SEVERITY</option>
+            <option value="high">HIGH</option>
+            <option value="medium">MEDIUM</option>
+            <option value="low">LOW</option>
+          </select>
+          <select class="filter-select" id="filter-device" onchange="applyFilters()">
+            <option value="">ALL DEVICES</option>
+          </select>
+          <button class="sm-btn" onclick="clearFilters()">↺ RESET</button>
+          <button class="sm-btn danger-btn" id="clear-all-btn2">✕ CLEAR ALL</button>
+        </div>
+      </div>
+
+      <div class="tab-sub-nav">
+        <button class="sub-nav-btn active" data-sub="active" onclick="switchSubTab('active')">
+          ACTIVE <span class="sub-badge" id="sub-active-count">0</span>
+        </button>
+        <button class="sub-nav-btn" data-sub="resolved" onclick="switchSubTab('resolved')">
+          RESOLVED <span class="sub-badge calm" id="sub-resolved-count">0</span>
+        </button>
+      </div>
+
+      <div id="alerts-full-list" class="full-list-scroll"></div>
+    </div>
+
+    <!-- DEVICES TAB -->
+    <div class="tab-pane" id="tab-devices">
+      <div class="pane-header">
+        <span class="pane-title">◈ DEVICE MANAGEMENT</span>
+        <div class="spacer"></div>
+        <div class="filter-group">
+          <div class="search-wrap inline-search">
+            <span class="search-icon">⌕</span>
+            <input type="text" id="deviceSearchFull" placeholder="Search devices..." oninput="renderDevicesFull()"/>
+          </div>
+          <select class="filter-select" id="filter-device-status" onchange="renderDevicesFull()">
+            <option value="">ALL STATUS</option>
+            <option value="online">🟢 ONLINE</option>
+            <option value="offline">🔴 OFFLINE</option>
+            <option value="attack">⚠ UNDER ATTACK</option>
+          </select>
+        </div>
+      </div>
+      <div id="devices-full-grid" class="devices-full-grid"></div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-pane" id="tab-history">
+      <div class="pane-header">
+        <span class="pane-title">◷ ALERT HISTORY</span>
+        <div class="spacer"></div>
+        <div class="filter-group">
+          <select class="filter-select" id="history-filter-sev" onchange="renderHistory()">
+            <option value="">ALL SEVERITY</option>
+            <option value="high">HIGH</option>
+            <option value="medium">MEDIUM</option>
+            <option value="low">LOW</option>
+          </select>
+          <select class="filter-select" id="history-filter-device" onchange="renderHistory()">
+            <option value="">ALL DEVICES</option>
+          </select>
+        </div>
+      </div>
+      <div id="history-list" class="full-list-scroll"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════ STATUS BAR ═══════════════ -->
+<footer class="statusbar">
+  <div class="status-seg">
+    <div class="status-dot" id="conn-dot"></div>
+    <span id="conn-label">CONNECTING...</span>
+  </div>
+  <div class="status-seg">
+    <span>LAST SCAN:</span>
+    <span id="last-scan-time">--:--:--</span>
+  </div>
+  <div class="status-seg">
+    <span>UPTIME:</span>
+    <span id="uptime-display">00:00:00</span>
+  </div>
+  <div class="spacer"></div>
+  <span>SERVER: 127.0.0.1:5000</span>
+  <span class="status-divider">|</span>
+  <span>AGENT: <span id="agent-count">0</span> ACTIVE</span>
+</footer>
+
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script src="static/dashboard.js"></script>
+</body>
+</html>
